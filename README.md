@@ -149,14 +149,26 @@ settings panel, and asserts that the section layer was built with the right rect
 background, that disabled sections stay hidden, and that the panel-transparency tokens and
 global style are in place.
 
-## Publishing
+## Development and publishing are isolated
+
+The working tree is the **development copy**. It is `"private": true` and it is what a
+local DSH profile links against, so it stays easy to edit. Two independent locks keep it
+from being published by accident:
+
+1. `"private": true` — npm refuses outright.
+2. A `prepublishOnly` hook that fails and prints the sanctioned path.
+
+Publishing goes through a staged copy instead:
 
 ```
-npm publish --access public
+npm run pack:publish            # refuses on a dirty tree; writes .publish/
+npm publish .publish --access public
 ```
 
-The repository metadata in `package.json` already points at this project's GitHub
-location; change it if you fork or rename.
+`tools/pack-publish.mjs` copies exactly the files the manifest declares, drops the
+`private` flag **in the staged copy only**, and refuses to run unless the working tree is
+a clean commit — so what reaches the registry is always exactly a commit. `.publish/` is
+gitignored.
 
 ## License
 

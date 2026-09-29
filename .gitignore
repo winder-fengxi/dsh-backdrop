@@ -5,6 +5,9 @@ package-lock.json
 pnpm-lock.yaml
 yarn.lock
 
+# publish staging, produced by tools/pack-publish.mjs
+.publish/
+
 # editor / OS
 .vscode/
 .idea/

@@ -14,6 +14,7 @@
   ],
   "license": "MIT",
   "type": "module",
+  "private": true,
   "main": "lib/index.js",
   "exports": {
     ".": {
@@ -34,7 +35,9 @@
     "node": ">=20.19.0"
   },
   "scripts": {
-    "test": "node tools/smoke-client.cjs"
+    "test": "node tools/smoke-client.cjs",
+    "pack:publish": "node tools/pack-publish.mjs",
+    "prepublishOnly": "node tools/refuse-direct-publish.mjs"
   },
   "dsh": {
     "bundle": {
