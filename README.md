@@ -1,60 +1,49 @@
 # dsh-backdrop
 
-Wallpaper and per-section background images for the **DeepSeek Harness** web UI.
+**中文** | [English](README.en.md)
 
-One overall background, plus an optional image for the **left sidebar**, the **main
-area** and the **right sidebar** — each with its own opacity, display mode, alignment
-and effects. Images never leave the browser; settings are a plain, hand-editable file.
+给 DeepSeek Harness 的 Web 界面加背景图：一张整体壁纸，左侧边栏 / 主内容区 / 右侧边栏还可以各用一张，
+分别设置不透明度、显示方式、对齐位置与效果。
 
----
-
-## 中文说明
-
-给 DeepSeek Harness 的 Web 界面加一层你自己的图片：整体一张壁纸，左侧边栏 / 主内容区 /
-右侧边栏还可以各用一张图，并且可以分别调不透明度、显示方式、对齐位置和效果。
 所有设置都从**图片的视角**描述 —— 滑块调的是「这张图显示成什么样」，不是「面板有多透明」。
+图片只存在浏览器本地（IndexedDB），不上传、不写宿主磁盘。
 
-图片只存在浏览器里（IndexedDB），不上传、不写宿主磁盘。
-
-### 安装
+## 安装
 
 ```powershell
-# from npm
 dsh plugin --profile web add dsh-backdrop
-
-# from a local checkout, while developing
-dsh plugin --profile web add link:<absolute-path-to-this-repository>
 ```
 
-装完重启 `dsh web`（或桌面端），浏览器 F5。
+桌面端把 `web` 换成 `desktop`。装完重启对应的应用，再刷新页面。
 
-桌面端（Electron）同样支持：分区靠几何测量定位，不依赖任何类名或协议细节。
-> 已知差异：桌面端用自定义协议 `dsh-app://` 提供页面，`webServer.tapIndex()` 那类 HTML
-> 改写不会生效 —— 本插件不使用它，所以不受影响。
+本地开发时可以直接链到源码目录：
 
-### 使用
+```powershell
+dsh plugin --profile web add link:<本仓库绝对路径>
+```
 
-**设置 → `dsh-backdrop（背景）`**：
+## 使用
+
+**设置 → `dsh-backdrop（背景）`**
 
 | 分组 | 控件 |
 |---|---|
-| 图片库 | 点击 / 拖入添加本地图片（可多选，大图自动降到 2560px 以内）；点缩略图设为整体背景，× 删除 |
+| 图片库 | 点击或拖入添加图片（可多选，大图自动降到 2560px 以内）；点缩略图设为整体背景，右上角 × 删除 |
 | 整体背景 | 启用 · 图片不透明度 · 显示方式 · 对齐位置 · 模糊 · 变暗 · 更多效果 · 轮播 · 随机顺序 · 用作界面图标 |
 | 分区背景 | 左侧边栏 / 主内容区 / 右侧边栏 各一张卡片，字段与整体一致，外加「跟随整体背景 / 单独指定」 |
 
-- **显示方式**：填充 / 适应 / 拉伸 / 平铺 / 居中（沿用 Windows 壁纸那套词）。
+- **显示方式**：填充 / 适应 / 拉伸 / 平铺 / 居中。
 - **对齐位置**：九宫格。
 - **更多效果**（默认折叠）：亮度 / 对比度 / 饱和度，默认 100%，不动就不写入 `filter`。
-- 分区卡片右上角会显示识别结果，例如 `已识别 260×1400`；显示`未识别到该分区`说明该分区
-  当前不可见（比如右侧栏没打开），打开后会自动重新识别。
+- 分区卡片右上角显示识别结果，例如 `已识别 260×1400`；显示`未识别到该分区`表示该分区当前不可见
+  （比如右侧栏没打开），打开后会自动重新识别。
 
-### 配置存在哪里
+## 配置
 
-配置**不在浏览器里**（图片才在浏览器的 IndexedDB）。它由宿主半边托管，按优先级两条路：
+配置由宿主半边托管，按优先级两条路，对浏览器是**同一个接口**：
 
-1. **官方设置层**（首选）：`ctx.settings.update(entryId, patch)` 把改动合并进
-   **profile patch（`cordis.patch.yml`）里本插件那一行的 `config:`** —— 可读、可手改、
-   可进版本库，平台自己的设置界面也能识别：
+1. **官方设置层** —— `ctx.settings.update()` 把改动合并进 profile patch
+   （`cordis.patch.yml`）里本插件那一行的 `config:`：
 
    ```yaml
    - id: dsh-backdrop
@@ -66,129 +55,52 @@ dsh plugin --profile web add link:<absolute-path-to-this-repository>
          sidebar: { on: true }
    ```
 
-2. **退路独立文件**：运行时没有设置服务时，退回 `$DSH_HOME/dsh-backdrop/config.json`。
+2. **退路独立文件** —— 运行时没有设置服务时，落在 `$DSH_HOME/dsh-backdrop/config.json`。
 
-两条路对浏览器是**同一个接口**（`GET` / `PUT /dsh-backdrop/config.json`），客户端不关心
-用的是哪条。
+配置是普通文件，可读、可手改、可备份。
 
----
+## 说明
 
-## Design notes
+**分区怎么定位。** DSH 的类名是 CSS Modules 哈希，布局 CSS 还是运行时注入的字符串，没有稳定选择器可用。
+应用外壳是横向的整高列布局，所以直接量几何：从 `#root` 往下找「一组占满视口高度、宽度加起来覆盖视口」
+的兄弟节点，取覆盖最宽、层级最浅的那组当外壳，再按 x 排序得到左 / 中 / 右。矩形随窗口尺寸与侧栏开合
+自动重算；量不到就整块不显示，全部退回整体背景。
 
-### Sections are measured, not selected
+**效果怎么实现。** 亮度 / 对比度 / 饱和度直接下 `filter`（分区层里只有图和遮罩，没有文字）。模糊分两种：
+整体层全屏可以直接 `blur()`；分区层不行（会糊出边界），改成入图时用 canvas 预烤进 data URL。变暗是
+一层黑色遮罩的 `opacity`。
 
-DSH's class names are CSS Modules hashes (`._boot_1fywu_3`, `.pI_x6G_frame`) and the layout CSS
-is injected at runtime as strings from each package's `lib/client.js`, so there is no stable
-selector to hook. The app shell is, however, a horizontal full-height column layout:
-`measureRegions()` walks down from `#root` looking for a set of siblings that each span the
-viewport height and whose widths together cover the viewport, takes the widest and shallowest
-such set as the shell, and sorts it by x into left / centre / right.
+**为什么背景不会闪。** 三条踩过的坑：布局重算只刷分区、不重画壁纸；同一张图绝不重做交叉淡入；预模糊
+没烤好时沿用上一次真正显示过的图。
 
-Rectangles are re-measured on `resize` and on throttled DOM mutations. If nothing can be
-measured the section layer stays off and everything falls back to the overall background.
-
-### Why not design tokens
-
-Each DSH region *is* painted from a `--dsw-*` token, but the centre and right columns have no
-background of their own (they show the canvas `bg-base`), so tokens cannot tell them apart and
-carry no notion of a "section". Token rebinding is still used for one thing: making panels
-translucent so the image behind them shows through — that is what **image opacity** drives
-internally.
-
-### Effects
-
-- **Brightness / contrast / saturation** go straight into `filter`. Section layers contain only
-  the image and a scrim, never text, so nothing else is affected.
-- **Blur** is different: the overall layer is full-screen, so it can take `filter: blur()`
-  directly (with the box expanded a little to avoid soft edges). Section layers cannot — the
-  blur would bleed past the rectangle — so blur is **baked into the image with a canvas** on
-  load and cached per section.
-- **Darken** is a black scrim div whose `opacity` carries the strength.
-
-### Why the background does not flicker
-
-Three bugs worth not reintroducing:
-
-1. **Layout re-measurement must not repaint the wallpaper.** A chat UI mutates the DOM
-   constantly while streaming; running a full repaint per mutation flips the cross-fade layers
-   over and over. DOM mutations now only call `refreshRegions()`, which re-measures rectangles
-   and returns immediately when no section is enabled.
-2. **The same image must never cross-fade again.** `showImage()` compares the image id first and
-   only updates fit/alignment when it has not changed; a real change waits for the new image to
-   decode before fading in.
-3. **A pending pre-blur falls back to the last URL that was actually shown**, otherwise dragging
-   the blur slider pops from sharp to blurred.
-
-### Host APIs used
-
-| Purpose | API |
-|---|---|
-| Configuration channel | `ctx.webServer.register({ kind, path, handler })` |
-| Settings persistence / read-back | `ctx.settings.update()` / `ctx.settings.describe()` |
-| Lifecycle | `ctx.effect(fn, label)` |
-
-The host half has **no external dependencies** — it imports `node:` builtins only — and looks the
-settings service up with `ctx.get("settings")` rather than declaring it in `inject`, so the
-plugin still mounts when the service is absent.
-
-`ctx.storageDomain` is deliberately not used: it is the official durable-storage API, but
-`defineDomain` requires zod record schemas and zod's major version differs between runtimes.
-Plugin settings are user-editable configuration rather than domain records.
-
----
-
-## Development
-
-### The `@deepseek-ai` resolution shim
-
-The host half imports `@deepseek-ai/schemastery` (the runtime's own schema library, used
-to declare `Config`). A `link:`-installed plugin resolves bare specifiers from **its own
-directory**, and this repository lives outside any profile, so the import fails and the
-plugin does not load at all.
-
-Create the shim once per machine (it is local-only and gitignored):
+## 开发
 
 ```powershell
-New-Item -ItemType Junction `
-  -Path  .\node_modules\@deepseek-ai `
+node tools/smoke-client.cjs     # 用 DOM / React / IndexedDB 桩件跑一遍 apply() 与设置面板
+npm run build:release           # 产出 release/（脏工作树上会拒绝执行）
+```
+
+宿主半边 import 了 `@deepseek-ai/schemastery`。`link:` 安装在插件自己的目录里解析裸模块名，所以需要
+一个本地垫片（已在 `.gitignore` 中）：
+
+```powershell
+New-Item -ItemType Junction -Path .\node_modules\@deepseek-ai `
   -Target $env:USERPROFILE\.dsh\profiles\node_modules\@deepseek-ai
 ```
 
-Without it, keep the host half free of `@deepseek-ai` imports.
+## 发布
 
-### Smoke test
+工作树是**开发副本**，永远 `"private": true`，并且有两道锁防止误发（npm 直接拒绝 + `prepublishOnly`
+钩子）。发布走单独的暂存目录：
 
-```
-node tools/smoke-client.cjs
-```
-
-The smoke test loads `lib/client.js` against DOM / React / IndexedDB stubs, lays out a fake
-three-column shell (260 / 1000 / 300 at a 1560×900 viewport), runs `apply()`, renders the
-settings panel, and asserts that the section layer was built with the right rectangles and
-background, that disabled sections stay hidden, and that the panel-transparency tokens and
-global style are in place.
-
-## Development and publishing are isolated
-
-The working tree is the **development copy**. It is `"private": true` and it is what a
-local DSH profile links against, so it stays easy to edit. Two independent locks keep it
-from being published by accident:
-
-1. `"private": true` — npm refuses outright.
-2. A `prepublishOnly` hook that fails and prints the sanctioned path.
-
-Publishing goes through a staged copy instead:
-
-```
-npm run pack:publish            # refuses on a dirty tree; writes .publish/
-npm publish .publish --access public
+```powershell
+npm run build:release
+npm publish release
 ```
 
-`tools/pack-publish.mjs` copies exactly the files the manifest declares, drops the
-`private` flag **in the staged copy only**, and refuses to run unless the working tree is
-a clean commit — so what reaches the registry is always exactly a commit. `.publish/` is
-gitignored.
+`tools/build-release.mjs` 只拷贝 manifest 声明的文件、只在暂存副本里去掉 `private`，并且**脏工作树上
+拒绝执行** —— 上到 registry 的永远是一个 commit。
 
-## License
+## 许可
 
 [MIT](LICENSE)
