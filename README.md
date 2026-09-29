@@ -19,11 +19,11 @@ and effects. Images never leave the browser; settings are a plain, hand-editable
 ### 安装
 
 ```powershell
-# 从 npm（发布后）
+# from npm
 dsh plugin --profile web add dsh-backdrop
 
-# 本地开发：直接链到源码目录，改完刷新即可
-dsh plugin --profile web add link:E:\path\to\dsh-backdrop
+# from a local checkout, while developing
+dsh plugin --profile web add link:<absolute-path-to-this-repository>
 ```
 
 装完重启 `dsh web`（或桌面端），浏览器 F5。
