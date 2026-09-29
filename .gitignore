@@ -1,0 +1,19 @@
+# dependencies (this package ships no runtime dependencies, but local installs appear)
+node_modules/
+.pnpm-store/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# logs and scratch
+*.log
+*.tmp
+*.bak
+.backup-*/
