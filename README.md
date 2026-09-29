@@ -139,6 +139,25 @@ Plugin settings are user-editable configuration rather than domain records.
 
 ## Development
 
+### The `@deepseek-ai` resolution shim
+
+The host half imports `@deepseek-ai/schemastery` (the runtime's own schema library, used
+to declare `Config`). A `link:`-installed plugin resolves bare specifiers from **its own
+directory**, and this repository lives outside any profile, so the import fails and the
+plugin does not load at all.
+
+Create the shim once per machine (it is local-only and gitignored):
+
+```powershell
+New-Item -ItemType Junction `
+  -Path  .\node_modules\@deepseek-ai `
+  -Target $env:USERPROFILE\.dsh\profiles\node_modules\@deepseek-ai
+```
+
+Without it, keep the host half free of `@deepseek-ai` imports.
+
+### Smoke test
+
 ```
 node tools/smoke-client.cjs
 ```
