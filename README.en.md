@@ -1,85 +1,69 @@
 # dsh-backdrop
 
-[中文](README.md) | **English**
+Background images for the DeepSeek Harness web UI.
 
-Background images for the DeepSeek Harness web UI: one overall wallpaper, plus an optional image for the
-left sidebar, the main area and the right sidebar.
+[中文](./README.md) · **English**
 
 ## Features
 
-- Overall background: one wallpaper across the whole interface.
-- Section backgrounds: the left sidebar, the main area and the right sidebar can each use their own image;
-  a section without one shows the overall background.
-- Image effects: opacity, display mode, alignment, blur, darken, brightness / contrast / saturation.
-- Carousel: every 30 seconds to 1 hour, optionally in random order.
-- App icon: use the current image as the browser tab icon.
-- Images are stored in the browser's IndexedDB.
+- Upload or drag in multiple local images and switch between them instantly.
+- Beyond the overall background, the left sidebar, the main area and the right sidebar can each use their own image.
+- Adjust image opacity, display mode, alignment, blur, darken, and brightness / contrast / saturation.
+- Carousel between images every 30 seconds to 1 hour, optionally in random order.
+- Use the current image as the browser tab icon.
+- Keep images in the current browser's IndexedDB. Nothing is uploaded to the DSH server.
 
 ## Install
 
-```powershell
+Run the following commands in the DeepSeek Harness repository:
+
+```sh
 dsh plugin --profile web add dsh-backdrop
+dsh web
 ```
 
-Use `desktop` instead of `web` for the Desktop app. Restart the app afterwards and reload the page.
+Open **Settings** in the lower-left corner of the Web interface, then select **dsh-backdrop (background)**.
 
-```powershell
-# local development
-dsh plugin --profile web add link:<absolute-path-to-this-repository>
+To install a local development copy instead:
+
+```sh
+dsh plugin --profile web add "/absolute/path/to/dsh-backdrop"
 ```
 
-## Usage
+To uninstall:
 
-**Settings → `dsh-backdrop (background)`**
+```sh
+dsh plugin --profile web remove dsh-backdrop
+```
 
-| Group | Controls |
-|---|---|
-| Library | Add images, multiple allowed; anything wider than 2560px is scaled down. Click a thumbnail to make it the overall background, click × to delete |
-| Overall background | Enable · image opacity · display mode · alignment · blur · darken · more effects · carousel · shuffle · use as app icon |
-| Section backgrounds | One card each for the left sidebar, the main area and the right sidebar; same fields, plus follow the overall image or pick a specific one |
+For the Desktop app, use `desktop` instead of `web` and restart the app afterwards.
 
-- Display mode: fill / fit / stretch / tile / center.
-- Alignment: a 3×3 grid.
-- More effects (collapsed by default): brightness / contrast / saturation, 100% by default.
-- Each section card shows what it detected, e.g. `detected 260×1400`; an invisible section shows
-  `section not detected`.
+## Data and limitations
 
-## Configuration
+- Images wider than 2560px are scaled down to 2560px before being saved.
+- Images live in the current browser's IndexedDB and are isolated by browser and site origin. Opening DSH in another browser, on another port or at a remote address means adding them again.
+- Clearing the site's browser data also removes the saved images.
+- Preferences live in the `config:` block of this plugin's own row in the profile patch (`cordis.patch.yml`):
 
-The configuration is stored in one of two places:
+  ```yaml
+  - id: dsh-backdrop
+    name: dsh-backdrop
+    config:
+      enabled: true
+      imgOpacity: 30
+      regions:
+        sidebar: { on: true }
+  ```
 
-1. The `config:` block of this plugin's own row in the profile patch (`cordis.patch.yml`), written through
-   `ctx.settings.update()`:
+  When the runtime exposes no settings service, they are written to `$DSH_HOME/dsh-backdrop/config.json` instead.
 
-   ```yaml
-   - id: dsh-backdrop
-     name: dsh-backdrop
-     config:
-       enabled: true
-       imgOpacity: 30
-       regions:
-         sidebar: { on: true }
-   ```
+## Build from source
 
-2. `$DSH_HOME/dsh-backdrop/config.json`, used when the runtime exposes no settings service.
+Requirements: Node.js 20.19 or later.
 
-## How it works
-
-**Locating sections.** `measureRegions()` walks down from `#root` looking for siblings that each span the
-viewport height and whose widths together cover the viewport, takes the widest and shallowest set as the app
-shell, and sorts it by x into left / centre / right. Rectangles are re-measured when the window resizes or
-sidebars open and close. When measurement fails the section layer stays hidden.
-
-**Image effects.** Brightness, contrast and saturation are applied to the layer's `filter`; a section layer
-contains no text. The overall layer is full-screen and uses `blur()` directly; a section layer's blur is baked
-into the data URL with a canvas when the image loads, so it cannot bleed past the rectangle. Darken is driven
-by a scrim layer's `opacity`.
-
-## Development
-
-```powershell
-node tools/smoke-client.cjs     # runs apply() and the settings panel against DOM/React/IndexedDB stubs
-npm run build:release           # writes release/; refuses to run on a dirty working tree
+```sh
+node tools/smoke-client.cjs
+npm run build:release
 ```
 
 A `link:` install requires a local shim (gitignored):
@@ -89,19 +73,13 @@ New-Item -ItemType Junction -Path .\node_modules\@deepseek-ai `
   -Target $env:USERPROFILE\.dsh\profiles\node_modules\@deepseek-ai
 ```
 
-## Publishing
+Publishing uses the staged `release/` copy and requires a committed working tree:
 
-The working tree stays `"private": true`, and a `prepublishOnly` hook blocks publishing from it. Publishing
-uses a staged copy:
-
-```powershell
+```sh
 npm run build:release
 npm publish release
 ```
 
-`tools/build-release.mjs` copies what the manifest declares, removes `private` in the staged copy only, and
-requires a committed working tree.
-
 ## License
 
-[MIT](LICENSE)
+[MIT](./LICENSE)
