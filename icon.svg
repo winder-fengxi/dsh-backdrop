@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Backdrop">
+  <rect x="4" y="10" width="56" height="44" rx="7" fill="none" stroke="#4b5563" stroke-width="3"/>
+  <path d="M4 42 L20 26 L32 38 L44 22 L60 38" fill="none" stroke="#4b5563" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="22" cy="22" r="4.5" fill="#4b5563"/>
+</svg>

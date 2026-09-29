@@ -1,7 +1,7 @@
 {
   "name": "dsh-backdrop",
   "version": "0.1.0",
-  "description": "Wallpaper and per-section background images for the DeepSeek Harness web UI: one overall background, plus an optional image for the left sidebar, the main area and the right sidebar 鈥?each with its own opacity, fit, alignment and effects.",
+  "description": "Wallpaper and per-section background images for the DeepSeek Harness web UI: one overall background, plus an optional image for the left sidebar, the main area and the right sidebar — each with its own opacity, display mode, alignment and effects.",
   "keywords": [
     "deepseek-harness",
     "dsh",
@@ -15,6 +15,7 @@
   "license": "MIT",
   "type": "module",
   "private": true,
+  "icon": "./icon.svg",
   "main": "lib/index.js",
   "exports": {
     ".": {
@@ -23,10 +24,13 @@
     "./client": {
       "default": "./lib/client.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json"
   },
   "files": [
     "lib",
+    "locale/*.json",
+    "icon.svg",
     "cordis.patch.yml",
     "README.md",
     "LICENSE"
