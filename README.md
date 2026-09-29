@@ -151,12 +151,12 @@ global style are in place.
 
 ## Publishing
 
-Before the first publish, replace the placeholder owner in `package.json`:
-`repository.url`, `bugs.url` and `homepage` all contain `OWNER`.
-
 ```
 npm publish --access public
 ```
+
+The repository metadata in `package.json` already points at this project's GitHub
+location; change it if you fork or rename.
 
 ## License
 

@@ -52,10 +52,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OWNER/dsh-backdrop.git"
+    "url": "git+https://github.com/winder-fengxi/dsh-backdrop.git"
   },
   "bugs": {
-    "url": "https://github.com/OWNER/dsh-backdrop/issues"
+    "url": "https://github.com/winder-fengxi/dsh-backdrop/issues"
   },
-  "homepage": "https://github.com/OWNER/dsh-backdrop#readme"
+  "homepage": "https://github.com/winder-fengxi/dsh-backdrop#readme"
 }
