@@ -1,7 +1,7 @@
 {
   "name": "dsh-backdrop",
   "version": "0.1.0",
-  "description": "Wallpaper and per-section background images for the DeepSeek Harness web UI: one overall background, plus an optional image for the left sidebar, the main area and the right sidebar — each with its own opacity, fit, alignment and effects.",
+  "description": "Wallpaper and per-section background images for the DeepSeek Harness web UI: one overall background, plus an optional image for the left sidebar, the main area and the right sidebar 鈥?each with its own opacity, fit, alignment and effects.",
   "keywords": [
     "deepseek-harness",
     "dsh",
@@ -36,7 +36,7 @@
   },
   "scripts": {
     "test": "node tools/smoke-client.cjs",
-    "pack:publish": "node tools/pack-publish.mjs",
+    "build:release": "node tools/build-release.mjs",
     "prepublishOnly": "node tools/refuse-direct-publish.mjs"
   },
   "dsh": {

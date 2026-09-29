@@ -1,18 +1,18 @@
 /**
- * Stage a publish-ready copy of this package under `.publish/`.
+ * Stage a publish-ready copy of this package under `release/`.
  *
  * The working tree is the development copy: it is `"private": true`, it is what the
  * local DSH profile links against, and `npm publish` refuses to run in it. Publishing
  * always goes through this script, so a stray `npm publish` in the repository cannot
  * ship half-finished work.
  *
- *     npm run pack:publish          # writes .publish/
- *     npm publish .publish          # the only sanctioned publish path
+ *     npm run build:release          # writes release/
+ *     npm publish release          # the only sanctioned publish path
  *
  * The staging step refuses to run on a dirty working tree, so what lands on the
  * registry is always exactly a commit.
  *
- * @module dsh-backdrop/tools/pack-publish
+ * @module dsh-backdrop/tools/build-release
  */
 
 import { execFileSync } from "node:child_process";
@@ -20,7 +20,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
-const out = path.join(root, ".publish");
+const out = path.join(root, "release");
 
 function fail(message) {
 	console.error("\n" + message + "\n");
@@ -35,13 +35,13 @@ try {
 	fail("Could not read git status. Stage from a git working copy.\n" + err.message);
 }
 if (dirty.length > 0) {
-	fail("Working tree is dirty — commit first:\n\n" + dirty);
+	fail("Working tree is dirty 鈥?commit first:\n\n" + dirty);
 }
 
 /* 2. Copy exactly the files the manifest declares. */
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 if (manifest.private !== true) {
-	fail('The working tree manifest must stay "private": true — that is the guard that\nblocks publishing from the repository itself.');
+	fail('The working tree manifest must stay "private": true 鈥?that is the guard that\nblocks publishing from the repository itself.');
 }
 
 fs.rmSync(out, { recursive: true, force: true });
@@ -67,6 +67,6 @@ staged.scripts = { ...staged.scripts };
 fs.writeFileSync(path.join(out, "package.json"), JSON.stringify(staged, null, 2) + "\n", "utf8");
 
 const version = staged.version;
-console.log("Staged " + staged.name + "@" + version + " in .publish/");
+console.log("Staged " + staged.name + "@" + version + " in release/");
 console.log("  files: " + copied.join(", "));
-console.log("\nNext:\n  npm publish .publish --access public\n");
+console.log("\nNext:\n  npm publish release --access public\n");
