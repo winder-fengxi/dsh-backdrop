@@ -3,12 +3,20 @@
 [中文](README.md) | **English**
 
 Background images for the DeepSeek Harness web UI: one overall wallpaper, plus an optional image for the
-left sidebar, the main area and the right sidebar — each with its own opacity, display mode, alignment and
-effects.
+left sidebar, the main area and the right sidebar.
 
-Every setting is phrased from the **image's** point of view: the sliders describe how the picture looks, not
-how transparent the panels are. Images stay in the browser (IndexedDB) — nothing is uploaded and nothing is
-written to the host.
+## Features
+
+- **Overall background** — one wallpaper across the whole interface.
+- **Section backgrounds** — the left sidebar, the main area and the right sidebar can each use their own
+  image; a section without one shows the overall background.
+- **Image effects** — opacity, display mode, alignment, blur, darken, plus brightness / contrast / saturation.
+- **Carousel** — rotate between images every 30 seconds to 1 hour, optionally in random order.
+- **App icon** — use the current image as the browser tab icon.
+
+Images are stored in the browser's IndexedDB. Nothing is uploaded and nothing is written to the host.
+Every setting is phrased from the image's point of view: "image opacity", for example, describes how visible
+the picture is.
 
 ## Install
 
@@ -16,7 +24,7 @@ written to the host.
 dsh plugin --profile web add dsh-backdrop
 ```
 
-Use `desktop` instead of `web` for the Desktop app. Restart the app afterwards, then reload the page.
+Use `desktop` instead of `web` for the Desktop app. Restart the app afterwards and reload the page.
 
 While developing, link the checkout directly:
 
@@ -30,19 +38,21 @@ dsh plugin --profile web add link:<absolute-path-to-this-repository>
 
 | Group | Controls |
 |---|---|
-| Library | Click or drop images (multiple allowed; large ones are scaled to 2560px). Click a thumbnail to make it the overall background, click × to delete |
+| Library | Click or drop images, multiple allowed; anything wider than 2560px is scaled down. Click a thumbnail to make it the overall background, click × to delete |
 | Overall background | Enable · image opacity · display mode · alignment · blur · darken · more effects · carousel · shuffle · use as app icon |
-| Section backgrounds | One card each for left sidebar / main area / right sidebar, same fields plus "follow the overall image" or "pick its own" |
+| Section backgrounds | One card each for the left sidebar, the main area and the right sidebar; same fields, plus "follow the overall image" or pick a specific one |
 
-- **Display mode**: fill / fit / stretch / tile / center.
-- **Alignment**: a 3×3 grid.
-- **More effects** (collapsed by default): brightness / contrast / saturation, 100% leaves `filter` untouched.
-- Each section card shows what it detected, e.g. `detected 260×1400`. `section not detected` means that
-  section is not currently visible (the right sidebar is closed, say); it is re-detected automatically.
+**Display mode**: fill / fit / stretch / tile / center.
+**Alignment**: a 3×3 grid.
+**More effects** (collapsed by default): brightness / contrast / saturation. At 100% no CSS `filter` is
+written.
+
+Each section card shows what it detected, for example `detected 260×1400`. `section not detected` means that
+section is not currently visible — the right sidebar is closed, say — and it is re-detected automatically.
 
 ## Configuration
 
-The host half owns the configuration. There are two stores, in order of preference, and the browser sees a
+The host half stores the configuration. There are two stores, in order of preference, and the browser sees a
 single interface either way:
 
 1. **The official settings layer** — `ctx.settings.update()` merges changes into this plugin's own row in the
@@ -58,39 +68,35 @@ single interface either way:
          sidebar: { on: true }
    ```
 
-2. **A standalone file** — when the runtime exposes no settings service, the configuration lands in
+2. **A standalone file** — when the runtime exposes no settings service, the configuration is written to
    `$DSH_HOME/dsh-backdrop/config.json`.
 
-Either way it is a plain file: readable, hand-editable, easy to back up.
+Either way it is a plain file that can be edited or backed up directly.
 
 ## How it works
 
-**Sections are measured, not selected.** DSH's class names are CSS Modules hashes and the layout CSS is
-injected at runtime as strings, so there is no stable selector. The app shell is a horizontal full-height
-column layout, so the plugin measures it: starting at `#root`, it looks for siblings that each span the
-viewport height and whose widths together cover the viewport, takes the widest and shallowest set as the
-shell, and sorts it by x into left / centre / right. Rectangles are re-measured as the window resizes or
-sidebars open and close; when nothing can be measured the section layer stays off and everything falls back
-to the overall background.
+**Locating sections.** DSH's class names are CSS Modules hashes and the layout styles are injected at runtime
+by each package, so no stable selector exists. The app shell is a horizontal full-height column layout, so
+`measureRegions()` measures it directly: starting at `#root` it looks for siblings that each span the viewport
+height and whose widths together cover the viewport, takes the widest and shallowest set as the shell, and
+sorts it by x into left / centre / right. Rectangles are re-measured when the window resizes or sidebars open
+and close. When nothing can be measured the section layer stays hidden and the overall background is used
+everywhere.
 
-**Effects.** Brightness, contrast and saturation go straight into `filter` — a section layer holds only the
-image and a scrim, never text. Blur is different: the overall layer is full-screen so it can take `blur()`
-directly, but a section layer would bleed past its rectangle, so blur is baked into the image with a canvas
-on load. Darken is a black scrim whose `opacity` carries the strength.
-
-**Why it does not flicker.** Three bugs worth not reintroducing: layout re-measurement refreshes sections
-only and never repaints the wallpaper; the same image never cross-fades again; and a pending pre-blur falls
-back to the last image that was actually shown.
+**Image effects.** Brightness, contrast and saturation are applied to the layer's `filter`; a section layer
+contains only the image and a scrim, so text is unaffected. Blur has two implementations: the overall layer is
+full-screen and uses `blur()` directly, while a section layer would bleed past its rectangle, so its blur is
+baked into the data URL with a canvas when the image loads. Darken is driven by a scrim layer's `opacity`.
 
 ## Development
 
 ```powershell
 node tools/smoke-client.cjs     # runs apply() and the settings panel against DOM/React/IndexedDB stubs
-npm run build:release           # writes release/ (refuses on a dirty working tree)
+npm run build:release           # writes release/; refuses to run on a dirty working tree
 ```
 
-The host half imports `@deepseek-ai/schemastery`. A `link:`-installed plugin resolves bare specifiers from
-its own directory, so it needs a local shim (gitignored):
+The host half imports `@deepseek-ai/schemastery`. A `link:`-installed plugin resolves bare specifiers from its
+own directory, so a local shim is required (gitignored):
 
 ```powershell
 New-Item -ItemType Junction -Path .\node_modules\@deepseek-ai `
@@ -99,18 +105,16 @@ New-Item -ItemType Junction -Path .\node_modules\@deepseek-ai `
 
 ## Publishing
 
-The working tree is the **development copy**: it stays `"private": true` and two independent locks keep it
-from being published by accident (npm refuses outright, and a `prepublishOnly` hook fails with the correct
-path). Publishing goes through a staged copy:
+The working tree is the development copy. It stays `"private": true`, and a `prepublishOnly` hook blocks
+publishing from it. Publishing uses a staged copy:
 
 ```powershell
 npm run build:release
 npm publish release
 ```
 
-`tools/build-release.mjs` copies exactly the files the manifest declares, drops `private` in the staged copy
-only, and refuses to run unless the working tree is a clean commit — so what reaches the registry is always
-exactly a commit.
+`tools/build-release.mjs` copies only what the manifest declares, removes `private` in the staged copy alone,
+and requires a committed working tree.
 
 ## License
 
