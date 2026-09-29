@@ -35,13 +35,13 @@ try {
 	fail("Could not read git status. Stage from a git working copy.\n" + err.message);
 }
 if (dirty.length > 0) {
-	fail("Working tree is dirty 鈥?commit first:\n\n" + dirty);
+	fail("Working tree is dirty. Commit first:\n\n" + dirty);
 }
 
 /* 2. Copy exactly the files the manifest declares. */
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 if (manifest.private !== true) {
-	fail('The working tree manifest must stay "private": true 鈥?that is the guard that\nblocks publishing from the repository itself.');
+	fail('The working tree manifest must stay "private": true -that is the guard that\nblocks publishing from the repository itself.');
 }
 
 fs.rmSync(out, { recursive: true, force: true });
