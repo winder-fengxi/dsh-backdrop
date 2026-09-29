@@ -48,11 +48,47 @@ fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
 
 const copied = [];
+/**
+ * Expand one `files` entry into concrete paths.
+ *
+ * npm accepts globs in `files` (`locale/*.json`), so the stager has to as well —
+ * treating an entry as a literal path fails the build with a confusing
+ * "declared file is missing".
+ */
+function expand(entry) {
+	if (!entry.includes("*")) return [entry];
+	let acc = [""];
+	for (const segment of entry.split("/")) {
+		const next = [];
+		for (const base of acc) {
+			if (!segment.includes("*")) {
+				next.push(base === "" ? segment : base + "/" + segment);
+				continue;
+			}
+			const dir = path.join(root, base === "" ? "." : base);
+			if (!fs.existsSync(dir)) continue;
+			const pattern = new RegExp(
+				"^" + segment.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$",
+				"u",
+			);
+			for (const name of fs.readdirSync(dir)) {
+				if (pattern.test(name)) next.push(base === "" ? name : base + "/" + name);
+			}
+		}
+		acc = next;
+	}
+	return acc;
+}
+
 for (const entry of manifest.files ?? []) {
-	const from = path.join(root, entry);
-	if (!fs.existsSync(from)) fail(`Declared file is missing: ${entry}`);
-	fs.cpSync(from, path.join(out, entry), { recursive: true });
-	copied.push(entry);
+	const matches = expand(entry);
+	if (matches.length === 0) fail(`Declared file is missing: ${entry}`);
+	for (const rel of matches) {
+		const from = path.join(root, rel);
+		if (!fs.existsSync(from)) fail(`Declared file is missing: ${rel}`);
+		fs.cpSync(from, path.join(out, rel), { recursive: true });
+		copied.push(rel);
+	}
 }
 /* npm always ships these; keep the staging directory self-contained anyway. */
 for (const extra of ["package.json"]) {
